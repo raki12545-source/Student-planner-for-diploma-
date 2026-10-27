@@ -1,0 +1,14 @@
+{
+  "name": "Raki's Student Planner",
+  "short_name": "ECE Planner",
+  "description": "Diploma 1st Year ECE academic task planner",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f6fc",
+  "theme_color": "#18233f",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"}
+  ]
+}

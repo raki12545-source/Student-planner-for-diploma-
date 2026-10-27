@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#18233f">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Raki's Student Planner</title>
+<style>
+:root{--ink:#18233f;--muted:#667085;--line:#e4e7ef;--bg:#f4f6fc;--card:#fff;--accent:#5267e8;--soft:#edf0ff;--green:#16845b;--red:#b42335;--amber:#9a6700}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.wrap{max-width:850px;margin:auto;padding:14px 12px 36px}
+header{background:linear-gradient(135deg,#18233f,#5267e8);color:white;padding:22px 18px;border-radius:22px;box-shadow:0 10px 28px #18233f20}
+.eyebrow{font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;opacity:.8}
+h1{font-size:clamp(25px,6vw,35px);line-height:1.15;margin:8px 0}header p{margin:0;opacity:.9}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.stat,.panel,.group{background:var(--card);border:1px solid var(--line);border-radius:16px}
+.stat{text-align:center;padding:12px 5px}.stat strong{font-size:23px;display:block}.stat span{font-size:12px;color:var(--muted)}
+.panel{padding:15px;margin:12px 0}.progress-head{display:flex;justify-content:space-between;gap:8px;font-size:13px;font-weight:750;margin-bottom:8px}
+.bar{height:9px;background:#e9ebf4;border-radius:99px;overflow:hidden}.bar div{height:100%;width:0;background:linear-gradient(90deg,#5267e8,#29b487);transition:width .2s}
+h2{font-size:18px;margin:0 0 10px}.muted{color:var(--muted);font-size:12px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label.field{display:block;font-size:12px;font-weight:750;color:var(--muted);margin-bottom:10px}
+input,select,textarea{width:100%;font:inherit;color:var(--ink);border:1px solid #d5d9e5;background:white;border-radius:10px;padding:10px;margin-top:5px;min-width:0}
+button{border:0;border-radius:11px;padding:10px 13px;font:inherit;font-weight:750;font-size:13px;cursor:pointer}
+.primary{background:var(--accent);color:white}.secondary{background:var(--soft);color:var(--ink)}.danger{background:#fff0f1;color:var(--red)}.plain{background:#f0f2f7;color:var(--ink)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.group{padding:14px;margin:12px 0}.group-head{display:flex;justify-content:space-between;gap:8px;align-items:center}.group-head h2{margin:0}.subject{font-size:12px;color:var(--muted);margin:8px 0 0}
+.task{border-top:1px solid var(--line);padding:12px 0;display:grid;grid-template-columns:22px minmax(0,1fr);gap:9px}
+.task input[type=checkbox]{width:19px;height:19px;margin:2px 0 0;accent-color:var(--green)}
+.task-main{min-width:0}.task-title{font-weight:750;overflow-wrap:anywhere}.task.done .task-title{text-decoration:line-through;color:var(--muted)}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;font-size:11px;color:var(--muted)}
+.badge{border-radius:99px;padding:3px 7px;background:#f0f2f7}.high{background:#fff0f1;color:var(--red)}.medium{background:#fff6df;color:var(--amber)}.low{background:#eaf8f1;color:var(--green)}.overdue{background:#fff0f1;color:var(--red)}
+.task-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.task-actions button{padding:6px 9px;font-size:11px}
+.empty{padding:20px;text-align:center;color:var(--muted);font-size:13px}
+.footer-note{font-size:12px;color:var(--muted);line-height:1.5;text-align:center;padding:12px 5px}
+hr{border:0;border-top:1px solid var(--line);margin:13px 0}
+@media(max-width:480px){.row{grid-template-columns:1fr;gap:0}.wrap{padding:10px 9px 28px}.panel,.group{padding:12px}.stat strong{font-size:21px}}
+@media print{body{background:white}.wrap{max-width:none;padding:0}header{background:white;color:var(--ink);box-shadow:none;border:1px solid #ccc}.panel.form-panel,.actions,.task-actions,.footer-note,.filters{display:none!important}.group,.panel{break-inside:avoid;box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+ <div class="eyebrow">Your college companion</div>
+ <h1>🎓 Raki's Student Planner</h1>
+ <p>Diploma · 1st Year · Electronics & Communication Engineering</p>
+</header>
+
+<div class="stats">
+ <div class="stat"><strong id="completedCount">0</strong><span>Completed</span></div>
+ <div class="stat"><strong id="pendingCount">22</strong><span>Pending</span></div>
+ <div class="stat"><strong id="percentCount">0%</strong><span>Progress</span></div>
+</div>
+<div class="panel">
+ <div class="progress-head"><span>Overall progress</span><span id="progressLabel">0 of 22 tasks</span></div>
+ <div class="bar"><div id="progressBar"></div></div>
+</div>
+
+<section class="panel form-panel" id="formPanel">
+ <h2 id="formHeading">➕ Add a new task</h2>
+ <form id="taskForm">
+  <div class="row">
+   <label class="field">Task name *
+    <input id="taskName" maxlength="120" placeholder="e.g. Maths Unit 2 assignment" required>
+   </label>
+   <label class="field">Subject / category
+    <input id="taskSubject" maxlength="60" placeholder="e.g. Mathematics">
+   </label>
+  </div>
+  <div class="row">
+   <label class="field">Deadline (optional)
+    <input id="taskDeadline" type="date">
+   </label>
+   <label class="field">Priority
+    <select id="taskPriority"><option>Medium</option><option>High</option><option>Low</option></select>
+   </label>
+  </div>
+  <label class="field">Notes (optional)
+   <input id="taskNotes" maxlength="200" placeholder="e.g. Submit to lab teacher">
+  </label>
+  <div class="actions">
+   <button class="primary" id="saveTaskBtn" type="submit">Save task</button>
+   <button class="secondary" type="button" id="cancelEditBtn" hidden>Cancel edit</button>
+  </div>
+ </form>
+</section>
+
+<section class="panel filters">
+ <h2>🔎 Find your tasks</h2>
+ <div class="row">
+  <label class="field">Search
+   <input id="searchInput" placeholder="Search task or subject...">
+  </label>
+  <label class="field">Show
+   <select id="statusFilter"><option value="all">All tasks</option><option value="pending">Pending only</option><option value="done">Completed only</option><option value="overdue">Overdue only</option></select>
+  </label>
+ </div>
+ <div class="actions">
+  <button class="secondary" id="sortDeadlineBtn" type="button">📅 Sort by deadline</button>
+  <button class="secondary" id="sortPriorityBtn" type="button">⭐ Sort by priority</button>
+ </div>
+</section>
+
+<div id="taskList"></div>
+
+<section class="panel">
+ <h2>💾 Backup & tools</h2>
+ <p class="muted">Your tasks save automatically in this browser on this device. Download a backup regularly so you can restore your planner if needed.</p>
+ <div class="actions">
+  <button class="primary" id="exportBtn" type="button">⬇️ Download backup</button>
+  <button class="secondary" id="importBtn" type="button">⬆️ Restore backup</button>
+  <input id="importFile" type="file" accept=".json,application/json" hidden>
+  <button class="secondary" id="printBtn" type="button">🖨️ Print planner</button>
+  <button class="danger" id="resetBtn" type="button">Reset all tasks</button>
+ </div>
+</section>
+<p class="footer-note">Made for Raki ❤️ · Autosaves in this browser. Browser data can be cleared by your device, and this file does not automatically sync across devices. Use Download backup to keep a copy.</p>
+</div>
+<script>
+const KEY='rakis-student-planner-v2';
+const seed=[
+['English Class Work','English','', 'Medium',''],['English Textbook','English','','Low',''],['English Assignment','English','','High',''],
+['Maths Class Work','Mathematics','','Medium',''],['Maths Assignment','Mathematics','','High',''],
+['Physics Assignment','Physics','','High',''],['Physics Manual (Lab)','Physics','','Medium',''],['Physics Record (Lab)','Physics','','High',''],
+['Chemistry Class Work','Chemistry','','Medium',''],['Chemistry Assignment','Chemistry','','High',''],['Chemistry Manual','Chemistry','','Medium',''],['Chemistry Observation','Chemistry','','Medium',''],['Chemistry Record','Chemistry','','High',''],
+['CDS Manual','CDS','','Medium',''],['CDS Observation','CDS','','Medium',''],
+['BE Class Work','BE','','Medium',''],['BE Assignment','BE','','High',''],['BE Manual (Lab)','BE','','Medium',''],['BE Observation (Lab)','BE','','Medium',''],
+['ECA Textbook','ECA','','Low',''],['ECA Assignment','ECA','','High',''],['ECA Class Work','ECA','','Medium','']
+];
+let tasks=[],editingId=null,sortMode='default';
+const $=id=>document.getElementById(id);
+const uid=()=> 't'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+function initialTasks(){return seed.map((s,i)=>({id:'seed-'+i,name:s[0],subject:s[1],deadline:s[2],priority:s[3],notes:s[4],done:false,created:i}));}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(tasks));}catch(e){alert('Could not save automatically. Please download a backup.');}}
+function load(){
+ try{const raw=localStorage.getItem(KEY);tasks=raw?JSON.parse(raw):initialTasks();if(!Array.isArray(tasks))tasks=initialTasks();}
+ catch(e){tasks=initialTasks();}
+ render();
+}
+function dateLabel(d){if(!d)return 'No deadline';const dt=new Date(d+'T00:00:00');return dt.toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'});}
+function isOverdue(t){return !t.done&&t.deadline&&t.deadline<new Date().toISOString().slice(0,10);}
+function updateStats(){
+ const done=tasks.filter(t=>t.done).length,total=tasks.length,pending=total-done,pct=total?Math.round(done/total*100):0;
+ $('completedCount').textContent=done;$('pendingCount').textContent=pending;$('percentCount').textContent=pct+'%';
+ $('progressLabel').textContent=`${done} of ${total} tasks`;$('progressBar').style.width=pct+'%';
+}
+function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function render(){
+ updateStats();
+ const search=$('searchInput').value.trim().toLowerCase(),filter=$('statusFilter').value;
+ let visible=tasks.filter(t=>{
+  const matches=(t.name+' '+t.subject+' '+t.notes).toLowerCase().includes(search);
+  const status=filter==='all'||(filter==='done'&&t.done)||(filter==='pending'&&!t.done)||(filter==='overdue'&&isOverdue(t));
+  return matches&&status;
+ });
+ if(sortMode==='deadline')visible.sort((a,b)=>(a.deadline||'9999').localeCompare(b.deadline||'9999'));
+ else if(sortMode==='priority'){const rank={High:0,Medium:1,Low:2};visible.sort((a,b)=>rank[a.priority]-rank[b.priority]);}
+ else visible.sort((a,b)=>String(a.subject||'Other').localeCompare(String(b.subject||'Other'))||a.created-b.created);
+ const grouped=new Map();
+ visible.forEach(t=>{const k=t.subject?.trim()||'Other tasks';if(!grouped.has(k))grouped.set(k,[]);grouped.get(k).push(t);});
+ const root=$('taskList');root.innerHTML='';
+ if(!visible.length){root.innerHTML='<div class="panel empty">No tasks match your search. Try another filter or add a task above.</div>';return;}
+ for(const [subject,list] of grouped){
+  const section=document.createElement('section');section.className='group';
+  section.innerHTML=`<div class="group-head"><h2>${escapeHtml(subject)}</h2><span class="muted">${list.filter(t=>t.done).length}/${list.length} done</span></div>`;
+  list.forEach(t=>{
+   const el=document.createElement('div');el.className='task'+(t.done?' done':'');
+   const deadlineText=t.deadline?dateLabel(t.deadline):'No deadline';
+   const overdue=isOverdue(t);
+   el.innerHTML=`<input type="checkbox" aria-label="Mark ${escapeHtml(t.name)} complete" ${t.done?'checked':''}>
+    <div class="task-main"><div class="task-title">${escapeHtml(t.name)}</div>
+    <div class="meta"><span class="badge ${t.priority.toLowerCase()}">${escapeHtml(t.priority)} priority</span><span class="badge ${overdue?'overdue':''}">${overdue?'⚠ Overdue · ':''}📅 ${escapeHtml(deadlineText)}</span>${t.notes?`<span class="badge">📝 ${escapeHtml(t.notes)}</span>`:''}</div>
+    <div class="task-actions"><button class="secondary edit">✏️ Edit</button><button class="danger delete">🗑️ Delete</button></div></div>`;
+   el.querySelector('input').addEventListener('change',e=>{t.done=e.target.checked;save();render();});
+   el.querySelector('.edit').addEventListener('click',()=>beginEdit(t.id));
+   el.querySelector('.delete').addEventListener('click',()=>{if(confirm(`Delete "${t.name}"?`)){tasks=tasks.filter(x=>x.id!==t.id);if(editingId===t.id)cancelEdit();save();render();}});
+   section.appendChild(el);
+  });
+  root.appendChild(section);
+ }
+}
+function beginEdit(id){
+ const t=tasks.find(x=>x.id===id);if(!t)return;editingId=id;
+ $('taskName').value=t.name;$('taskSubject').value=t.subject;$('taskDeadline').value=t.deadline||'';
+ $('taskPriority').value=t.priority;$('taskNotes').value=t.notes||'';
+ $('formHeading').textContent='✏️ Edit task';$('saveTaskBtn').textContent='Update task';$('cancelEditBtn').hidden=false;
+ $('formPanel').scrollIntoView({behavior:'smooth',block:'start'});$('taskName').focus();
+}
+function cancelEdit(){editingId=null;$('taskForm').reset();$('taskPriority').value='Medium';$('formHeading').textContent='➕ Add a new task';$('saveTaskBtn').textContent='Save task';$('cancelEditBtn').hidden=true;}
+$('taskForm').addEventListener('submit',e=>{
+ e.preventDefault();const name=$('taskName').value.trim();if(!name)return;
+ const data={name,subject:$('taskSubject').value.trim()||'Other tasks',deadline:$('taskDeadline').value,priority:$('taskPriority').value,notes:$('taskNotes').value.trim()};
+ if(editingId){const t=tasks.find(x=>x.id===editingId);if(t)Object.assign(t,data);}
+ else tasks.push({id:uid(),...data,done:false,created:Date.now()});
+ save();cancelEdit();render();
+});
+$('cancelEditBtn').addEventListener('click',cancelEdit);
+$('searchInput').addEventListener('input',render);$('statusFilter').addEventListener('change',render);
+$('sortDeadlineBtn').addEventListener('click',()=>{sortMode='deadline';render();});
+$('sortPriorityBtn').addEventListener('click',()=>{sortMode='priority';render();});
+$('exportBtn').addEventListener('click',()=>{
+ const blob=new Blob([JSON.stringify({app:'Raki Student Planner',version:2,exportedAt:new Date().toISOString(),tasks},null,2)],{type:'application/json'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Raki_Student_Planner_Backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+$('importBtn').addEventListener('click',()=>$('importFile').click());
+$('importFile').addEventListener('change',async e=>{
+ const file=e.target.files[0];if(!file)return;
+ try{const data=JSON.parse(await file.text());const incoming=Array.isArray(data)?data:data.tasks;
+  if(!Array.isArray(incoming)||!incoming.every(t=>t&&typeof t.name==='string'))throw new Error('Invalid file');
+  if(confirm(`Restore ${incoming.length} tasks from this backup? This replaces the tasks currently in this planner.`)){
+   tasks=incoming.map((t,i)=>({id:String(t.id||uid()),name:String(t.name),subject:String(t.subject||'Other tasks'),deadline:String(t.deadline||''),priority:['High','Medium','Low'].includes(t.priority)?t.priority:'Medium',notes:String(t.notes||''),done:Boolean(t.done),created:Number(t.created||i)}));
+   save();cancelEdit();render();alert('Backup restored successfully!');
+  }
+ }catch(err){alert('That backup file could not be read. Please choose a backup downloaded from this planner.');}
+ e.target.value='';
+});
+$('printBtn').addEventListener('click',()=>window.print());
+$('resetBtn').addEventListener('click',()=>{if(confirm('Delete all tasks and reset the planner to the original 22 tasks? Download a backup first if you want to keep your current list.')){tasks=initialTasks();save();cancelEdit();render();}});
+load();
+</script>
+<script>
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(() => {}));
+}
+</script>
+</body>
+</html>
